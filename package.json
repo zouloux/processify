@@ -1,6 +1,6 @@
 {
   "name": "processify",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "Create isomorphic scripts for Node JS. Your scripts can be executed from CLI or used programmatically from another Node JS script transparently.",
   "main": "index.js",
   "scripts": {

@@ -9,6 +9,20 @@ const merge = function (a, b)
 	Object.keys( b ).map( key => a[ key ] = b[ key ] );
 }
 
+/**
+ * Remove extension of a file path.
+ * Will remove everything after the last dot.
+ */
+const removeExtension = function ( filePath )
+{
+	const lastDotIndex = filePath.lastIndexOf('.');
+	return (
+		(lastDotIndex === -1)
+		? filePath
+		: filePath.substr( 0, lastDotIndex)
+	);
+}
+
 module.exports = {
 	
 	/**
@@ -25,11 +39,11 @@ module.exports = {
 		if ( !(1 in process.argv) || typeof(process.argv[1]) !== 'string' ) return false;
 
 		// Check if processified file path is the same of the file path executed from CLI
+		// We remove extension and test as lowerCase for silly configured envs ...
 		return (
-			// Transform processified file path to be compared argv file path
-			filePath.substr( 0, filePath.lastIndexOf('.') ).toLowerCase()
-			// And compare it to executed file path
-			=== process.argv[1].toLowerCase()
+			removeExtension( filePath ).toLowerCase()
+			===
+			removeExtension( process.argv[1] ).toLowerCase()
 		);
 	},
 
@@ -71,68 +85,86 @@ module.exports = {
 
 		// ----- EXECUTE
 
-		// Execute startup function to map arguments to exported function call
-		startupPromise( defaultArguments )
-
-		// When promise is successful
-		.then(function ( pResult )
+		// When startup function succeed
+		function success ( result )
 		{
+
 			// Call custom success handler if we have one and give result
 			if ( sucessHandler != null )
 			{
-				sucessHandler( pResult );
+				sucessHandler( result );
 			}
 
 			// Otherwise log result as JSON
-			else if ( pResult != null )
+			else if ( result != null )
 			{
-				console.log( JSON.stringify( pResult ) );
+				console.log( JSON.stringify( result ) );
 			}
 
 			// Exit with success code
 			process.exit( 0 );
-		})
+		}
 
-		// Catch errors on promises or sync code
-		.catch(function ( pError )
+		// When startup function fails
+		function fail (error)
 		{
 			// If we have a custom error handler
 			if ( errorHandler != null )
 			{
 				// Call custom handler and get returned code
-				let code = errorHandler( pError );
+				let code = errorHandler( error );
 
 				// Exit with returned code if valid number
 				// Otherwise exit with default code 1
 				process.exit( typeof code === 'number' ? code : 1 );
 			}
 			// If we have a string error without custom error handler 
-			else if ( typeof pError === 'string' )
+			else if ( typeof error === 'string' )
 			{
 				// Put this string in stderr and exit with default code
-				console.error( pError );
+				console.error( error );
 			}
 			// If we have an object Error
-			else if ( typeof pError === 'object' )
+			else if ( typeof error === 'object' )
 			{
 				// If this is a native error object
-				if ( pError instanceof Error )
+				if ( error instanceof Error )
 				{
 					// Put this error with stack in stderr and exit with default code
-					console.error( pError );
+					console.error( error );
 				}
 				// If we have a custom error object with 'message' and 'code props'
-				else if ( 'code' in pError && 'message' in pError )
+				else if ( 'code' in error && 'message' in error )
 				{
 					// Put message in stderr and exit with code
-					console.error( pError.message );
-					process.exit( pError.code );
+					console.error( error.message );
+					process.exit( error.code );
 				}
 			}
 
 			// If error occurs with no error handler and no catched error object
 			// Exit with default code 1
 			process.exit( 1 );
-		});
+		}
+
+		// Execute startup function to map arguments to exported function call
+		let returnedPromise;
+		try
+		{
+			returnedPromise = startupPromise( defaultArguments )
+		}
+
+		// Execute fail if we catched a sync error
+		catch (e) { fail( e ) }
+
+		// Check if startup returns a promise
+		if (returnedPromise != null && returnedPromise instanceof Promise)
+		{
+			// When promise is successful
+			returnedPromise.then(success);
+
+			// Catch errors on promises
+			returnedPromise.catch(fail);
+		}
 	}
 };
