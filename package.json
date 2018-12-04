@@ -1,0 +1,35 @@
+{
+  "name": "processify",
+  "version": "1.0.0",
+  "description": "Create isomorphic scripts for Node JS. Your scripts can be executed from CLI or used programmatically from another Node JS script transparently.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/zouloux/processify.git"
+  },
+  "keywords": [
+    "processify",
+    "process",
+    "node",
+    "nodejs",
+    "cli",
+    "promise",
+    "module",
+    "exports",
+    "interactive",
+    "shell",
+    "require"
+  ],
+  "author": "Alexis Bouhet",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/zouloux/processify/issues"
+  },
+  "homepage": "https://github.com/zouloux/processify#readme",
+  "dependencies": {
+    "minimist": "^1.2.0"
+  }
+}
